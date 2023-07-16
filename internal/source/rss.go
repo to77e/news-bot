@@ -17,7 +17,7 @@ type RSSSource struct {
 }
 
 // NewRSSSourceForModel - creates new RSSSource for model.
-func NewRSSSourceForModel(m models.Source) RSSSource {
+func NewRSSSourceForModel(m *models.Source) RSSSource {
 	return RSSSource{
 		URL:        m.FeedURL,
 		SourceID:   m.ID,
@@ -26,7 +26,7 @@ func NewRSSSourceForModel(m models.Source) RSSSource {
 }
 
 // Fetch - fetches items from source.
-func (r *RSSSource) Fetch(ctx context.Context) ([]models.Item, error) {
+func (r RSSSource) Fetch(ctx context.Context) ([]models.Item, error) {
 	feed, err := r.loadFeed(ctx, r.URL)
 	if err != nil {
 		return nil, fmt.Errorf("fetch url %s: %w", r.URL, err)
@@ -46,7 +46,7 @@ func (r *RSSSource) Fetch(ctx context.Context) ([]models.Item, error) {
 	return items, nil
 }
 
-func (r *RSSSource) loadFeed(ctx context.Context, url string) (*rss.Feed, error) {
+func (r RSSSource) loadFeed(ctx context.Context, url string) (*rss.Feed, error) {
 	var (
 		feedCh = make(chan *rss.Feed)
 		errCh  = make(chan error)
@@ -71,4 +71,12 @@ func (r *RSSSource) loadFeed(ctx context.Context, url string) (*rss.Feed, error)
 	case feed := <-feedCh:
 		return feed, nil
 	}
+}
+
+func (r RSSSource) ID() int64 {
+	return r.SourceID
+}
+
+func (r RSSSource) Name() string {
+	return r.SourceName
 }
