@@ -113,7 +113,7 @@ func (f *Fetcher) processItems(ctx context.Context, source Source, items []model
 			Summary:       v.Summary,
 			PublishedDate: v.Date,
 		}); err != nil {
-			return fmt.Errorf("store article: %w", err)
+			return fmt.Errorf("store article.go: %w", err)
 		}
 	}
 	return nil

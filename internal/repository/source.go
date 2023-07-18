@@ -27,6 +27,10 @@ type SourceRepository struct {
 	db *pgx.Conn
 }
 
+func NewSourceRepository(db *pgx.Conn) *SourceRepository {
+	return &SourceRepository{db: db}
+}
+
 // Sources - returns all sources.
 func (s *SourceRepository) Sources(ctx context.Context) ([]*models.Source, error) {
 	const (

@@ -21,7 +21,7 @@ type Source struct {
 	CreatedDate time.Time
 }
 
-// Article - article model.
+// Article - article.go model.
 type Article struct {
 	ID            int64
 	SourceID      int64

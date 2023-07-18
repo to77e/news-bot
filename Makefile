@@ -45,8 +45,12 @@ endif
 migrate-up: install-goose
 	$(GOOSE_BIN) -dir migrations postgres "host=localhost user=postgres password=postgres dbname=news-bot-db sslmode=disable" up
 
-.PHONY: migrate-check
-migrate-check: install-goose
+.PHONY: migrate-down
+migrate-down: install-goose
+	$(GOOSE_BIN) -dir migrations postgres "host=localhost user=postgres password=postgres dbname=news-bot-db sslmode=disable" down
+
+.PHONY: migrate-status
+migrate-status: install-goose
 	$(GOOSE_BIN) -dir migrations postgres "host=localhost user=postgres password=postgres dbname=news-bot-db sslmode=disable" status
 
 
