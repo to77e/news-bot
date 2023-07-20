@@ -28,7 +28,7 @@ var (
 func Get() *Config {
 	once.Do(func() {
 		loader := aconfig.LoaderFor(&cfg, aconfig.Config{
-			EnvPrefix: "NFB",
+			EnvPrefix: "NB",
 			Files:     []string{"./config.yaml", "./config.local.yaml"},
 			FileDecoders: map[string]aconfig.FileDecoder{
 				".yaml": aconfigyaml.New(),
