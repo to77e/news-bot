@@ -16,7 +16,7 @@ type Config struct {
 	TelegramChannelID    int64         `yaml:"telegram_channel_id" env:"TELEGRAM_CHANNEL_ID" required:"true"`
 	DatabaseDSN          string        `yaml:"database_dsn" env:"DATABASE_DSN" default:"postgres://postgres:postgres@localhost:5432/news?sslmode=disable"`
 	FetchInterval        time.Duration `yaml:"fetch_interval" env:"FETCH_INTERVAL" default:"10m"`
-	NotificationInterval time.Duration `yaml:"notification_interval" env:"NOTIFICATION_INTERVAL" default:"1h"`
+	NotificationInterval time.Duration `yaml:"notification_interval" env:"NOTIFICATION_INTERVAL" default:"1m"`
 	FilterKeyword        []string      `yaml:"filter_keyword" env:"FILTER_KEYWORD"`
 	OpenAIKey            string        `yaml:"openai_key" env:"OPENAI_KEY"`
 	OpenAIPrompt         string        `yaml:"openai_prompt" env:"OPENAI_PROMPT"`

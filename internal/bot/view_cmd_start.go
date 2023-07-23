@@ -1,3 +1,4 @@
+// Package bot implements the bot's views.
 package bot
 
 import (
@@ -8,6 +9,7 @@ import (
 	"github.com/to77e/news-bot/internal/botkit"
 )
 
+// ViewCmdStart returns a view function that sends a welcome message.
 func ViewCmdStart() botkit.ViewFunc {
 	return func(ctx context.Context, bot *tgbotapi.BotAPI, update tgbotapi.Update) error {
 		if _, err := bot.Send(tgbotapi.NewMessage(
