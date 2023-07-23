@@ -1,3 +1,4 @@
+// Package summary provides work with OpenAI summarizer.
 package summary
 
 import (
@@ -9,6 +10,7 @@ import (
 	"sync"
 )
 
+// OpenAISummarizer - OpenAI summarizer.
 type OpenAISummarizer struct {
 	client  *openai.Client
 	prompt  string
@@ -16,6 +18,7 @@ type OpenAISummarizer struct {
 	mu      sync.Mutex
 }
 
+// NewOpenAISummarizer - creates new OpenAI summarizer.
 func NewOpenAISummarizer(apiKey string, prompt string) *OpenAISummarizer {
 	s := &OpenAISummarizer{
 		client: openai.NewClient(apiKey),
@@ -31,6 +34,7 @@ func NewOpenAISummarizer(apiKey string, prompt string) *OpenAISummarizer {
 	return s
 }
 
+// Summarize - summarizes text.
 func (s *OpenAISummarizer) Summarize(ctx context.Context, text string) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

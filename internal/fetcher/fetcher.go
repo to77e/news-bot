@@ -1,3 +1,4 @@
+// Package fetcher provides work with fetcher.
 package fetcher
 
 import (
@@ -12,20 +13,24 @@ import (
 	"github.com/to77e/news-bot/internal/source"
 )
 
+// ArticleRepository - article repository.
 type ArticleRepository interface {
 	Store(ctx context.Context, article models.Article) error
 }
 
+// SourceRepository - source repository.
 type SourceRepository interface {
 	Sources(ctx context.Context) ([]*models.Source, error)
 }
 
+// Source - source.
 type Source interface {
 	ID() int64
 	Name() string
 	Fetch(ctx context.Context) ([]models.Item, error)
 }
 
+// Fetcher - fetcher.
 type Fetcher struct {
 	articles ArticleRepository
 	sources  SourceRepository
@@ -34,6 +39,7 @@ type Fetcher struct {
 	filterKeyword []string
 }
 
+// New - creates new fetcher.
 func New(
 	articles ArticleRepository,
 	sources SourceRepository,
@@ -48,6 +54,7 @@ func New(
 	}
 }
 
+// Start - starts fetching articles from sources.
 func (f *Fetcher) Start(ctx context.Context) error {
 	ticker := time.NewTicker(f.fetchInterval)
 	defer ticker.Stop()
@@ -68,6 +75,7 @@ func (f *Fetcher) Start(ctx context.Context) error {
 	}
 }
 
+// Fetch - fetches articles from sources.
 func (f *Fetcher) Fetch(ctx context.Context) error {
 	sources, err := f.sources.Sources(ctx)
 	if err != nil {

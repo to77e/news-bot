@@ -73,10 +73,12 @@ func (r RSSSource) loadFeed(ctx context.Context, url string) (*rss.Feed, error) 
 	}
 }
 
+// ID - returns source id.
 func (r RSSSource) ID() int64 {
 	return r.SourceID
 }
 
+// Name - returns source name.
 func (r RSSSource) Name() string {
 	return r.SourceName
 }

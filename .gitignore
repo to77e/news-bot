@@ -26,5 +26,6 @@ go.work
 .DS_Store
 
 /bin
+.config.yaml
 
 

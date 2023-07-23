@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/to77e/news-bot/internal/models"
 	"time"
 )
@@ -24,10 +25,11 @@ type dbSource struct {
 
 // SourceRepository - source repository.
 type SourceRepository struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-func NewSourceRepository(db *pgx.Conn) *SourceRepository {
+// NewSourceRepository - creates new source repository.
+func NewSourceRepository(db *pgxpool.Pool) *SourceRepository {
 	return &SourceRepository{db: db}
 }
 

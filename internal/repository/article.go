@@ -5,7 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/to77e/news-bot/internal/models"
 	"time"
 )
@@ -23,15 +23,16 @@ type dbArticle struct {
 
 // ArticleRepository - article repository.
 type ArticleRepository struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-func NewArticleRepository(db *pgx.Conn) *ArticleRepository {
+// NewArticleRepository - creates new article repository.
+func NewArticleRepository(db *pgxpool.Pool) *ArticleRepository {
 	return &ArticleRepository{db: db}
 }
 
 // Store - stores article.
-func (s *ArticleRepository) Store(ctx context.Context, article models.Article) error {
+func (a *ArticleRepository) Store(ctx context.Context, article models.Article) error {
 	const (
 		query = `
 			INSERT INTO articles (source_id, title, link, summary, published_at)
@@ -39,7 +40,7 @@ func (s *ArticleRepository) Store(ctx context.Context, article models.Article) e
 			ON CONFLICT DO NOTHING;`
 	)
 
-	_, err := s.db.Exec(ctx, query, article.SourceID, article.Title, article.Link, article.Summary, article.PublishedDate)
+	_, err := a.db.Exec(ctx, query, article.SourceID, article.Title, article.Link, article.Summary, article.PublishedDate)
 	if err != nil {
 		return fmt.Errorf("insert article: %w", err)
 	}
@@ -48,7 +49,7 @@ func (s *ArticleRepository) Store(ctx context.Context, article models.Article) e
 }
 
 // AllNotPosted - returns all not posted articles.
-func (s *SourceRepository) AllNotPosted(ctx context.Context, since time.Time, limit uint64) ([]*models.Article, error) {
+func (a *ArticleRepository) AllNotPosted(ctx context.Context, since time.Time, limit uint64) ([]*models.Article, error) {
 	const (
 		query = `
 			SELECT id, source_id, title, link, summary, published_at, created_at, posted_at
@@ -58,7 +59,7 @@ func (s *SourceRepository) AllNotPosted(ctx context.Context, since time.Time, li
 			LIMIT $2;`
 	)
 
-	rows, err := s.db.Query(ctx, query, since.UTC().Format(time.RFC3339), limit)
+	rows, err := a.db.Query(ctx, query, since.UTC().Format(time.RFC3339), limit)
 	if err != nil {
 		return nil, fmt.Errorf("select articles: %w", err)
 	}
@@ -95,12 +96,12 @@ func (s *SourceRepository) AllNotPosted(ctx context.Context, since time.Time, li
 }
 
 // MarkPosted - marks source as posted.
-func (s *SourceRepository) MarkPosted(ctx context.Context, id int64) error {
+func (a *ArticleRepository) MarkPosted(ctx context.Context, id int64) error {
 	const (
 		query = `UPDATE articles SET posted_at = NOW() WHERE id = $1;`
 	)
 
-	_, err := s.db.Exec(ctx, query, id)
+	_, err := a.db.Exec(ctx, query, id)
 	if err != nil {
 		return fmt.Errorf("update article: %w", err)
 	}

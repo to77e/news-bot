@@ -1,3 +1,4 @@
+// Package config contains config.
 package config
 
 import (
@@ -9,6 +10,7 @@ import (
 	"github.com/cristalhq/aconfig"
 )
 
+// Config - config.
 type Config struct {
 	TelegramBotToken     string        `yaml:"telegram_bot_token" env:"TELEGRAM_BOT_TOKEN" required:"true"`
 	TelegramChannelID    int64         `yaml:"telegram_channel_id" env:"TELEGRAM_CHANNEL_ID" required:"true"`
@@ -21,15 +23,16 @@ type Config struct {
 }
 
 var (
-	cfg  *Config
+	cfg  Config
 	once sync.Once
 )
 
-func Get() *Config {
+// Get returns config.
+func Get() Config {
 	once.Do(func() {
 		loader := aconfig.LoaderFor(&cfg, aconfig.Config{
 			EnvPrefix: "NB",
-			Files:     []string{"./config.yaml", "./config.local.yaml"},
+			Files:     []string{"./.config.yaml", "./config.local.yaml"},
 			FileDecoders: map[string]aconfig.FileDecoder{
 				".yaml": aconfigyaml.New(),
 			},
