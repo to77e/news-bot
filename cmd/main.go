@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/to77e/news-bot/internal/bot"
+	"github.com/to77e/news-bot/internal/botkit"
 	"github.com/to77e/news-bot/internal/config"
 	"github.com/to77e/news-bot/internal/database"
 	"github.com/to77e/news-bot/internal/fetcher"
@@ -52,6 +54,9 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
+	newsBot := botkit.New(botAPI)
+	newsBot.RegisterCmdView("start", bot.ViewCmdStart())
+
 	go func(ctx context.Context) {
 		if err := fetch.Start(ctx); err != nil {
 			if errors.Is(err, context.Canceled) {
@@ -62,13 +67,21 @@ func main() {
 		}
 	}(ctx)
 
-	//go func(ctx context.Context) {
-	if err := notify.Start(ctx); err != nil {
+	go func(ctx context.Context) {
+		if err := notify.Start(ctx); err != nil {
+			if errors.Is(err, context.Canceled) {
+				log.Printf("[ERROR] notifier start: %v", err)
+				return
+			}
+			log.Printf("notifier stop: %v", err)
+		}
+	}(ctx)
+
+	if err := newsBot.Run(ctx); err != nil {
 		if errors.Is(err, context.Canceled) {
-			log.Printf("[ERROR] notifier start: %v", err)
+			log.Printf("[ERROR] bot start: %v", err)
 			return
 		}
-		log.Printf("notifier stop: %v", err)
+		log.Printf("bot stop: %v", err)
 	}
-	//}(ctx)
 }
