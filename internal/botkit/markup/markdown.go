@@ -44,7 +44,7 @@ var (
 	)
 )
 
-// EscapeMarkdown - escapes markdown.
-func EscapeMarkdown(text string) string {
+// EscapeForMarkdown - escapes markdown.
+func EscapeForMarkdown(text string) string {
 	return replacer.Replace(text)
 }

@@ -137,9 +137,9 @@ func (n *Notifier) sendArticle(article *models.Article, summary string) error {
 
 	msg := tgbotapi.NewMessage(n.channelID, fmt.Sprintf(
 		messageFormat,
-		markup.EscapeMarkdown(article.Title),
-		markup.EscapeMarkdown(summary),
-		markup.EscapeMarkdown(article.Link)),
+		markup.EscapeForMarkdown(article.Title),
+		markup.EscapeForMarkdown(summary),
+		markup.EscapeForMarkdown(article.Link)),
 	)
 	msg.ParseMode = tgbotapi.ModeMarkdownV2
 
