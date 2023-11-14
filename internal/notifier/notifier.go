@@ -1,4 +1,3 @@
-// Package notifier provides work with notifier.
 package notifier
 
 import (
@@ -16,18 +15,15 @@ import (
 	"github.com/to77e/news-bot/internal/models"
 )
 
-// ArticleProvider is a service that provides articles.
 type ArticleProvider interface {
 	AllNotPosted(ctx context.Context, since time.Time, limit uint64) ([]*models.Article, error)
 	MarkPosted(ctx context.Context, id int64) error
 }
 
-// Summarizer is a service that summarizes text.
 type Summarizer interface {
 	Summarize(ctx context.Context, text string) (string, error)
 }
 
-// Notifier is a service that sends articles to the channel.
 type Notifier struct {
 	articles         ArticleProvider
 	summarizer       Summarizer
@@ -37,7 +33,6 @@ type Notifier struct {
 	channelID        int64
 }
 
-// New creates a new notifier.
 func New(
 	articles ArticleProvider,
 	summarizer Summarizer,
@@ -56,7 +51,6 @@ func New(
 	}
 }
 
-// Start starts the notifier.
 func (n *Notifier) Start(ctx context.Context) error {
 	ticker := time.NewTicker(n.sendInterval)
 	defer ticker.Stop()
@@ -77,7 +71,6 @@ func (n *Notifier) Start(ctx context.Context) error {
 	}
 }
 
-// SelectAndSendArticle selects one article and sends it to the channel.
 func (n *Notifier) SelectAndSendArticle(ctx context.Context) error {
 	//TODO: wrap in a transaction
 	topOneArticles, err := n.articles.AllNotPosted(ctx, time.Now().Add(-n.lookupTimeWindow), 1)

@@ -1,18 +1,35 @@
-version: '3.1'
+version: '3.9'
 
 services:
-  db:
-    image: postgres:15
+  postgres:
+    image: postgres:latest
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres"]
+      timeout: 45s
+      interval: 10s
+      retries: 10
     restart: always
-    environment:
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_DB: news-bot-db
-      PGDATA: /var/lib/postgresql/data/
+    logging:
+      driver: "gelf"
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "postgres"
     ports:
-      - 5432:5432
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: news-bot-db
+    networks:
+      - backend
     volumes:
-      - db:/var/lib/postgresql/data/
+      - postgres:/var/lib/postgresql/data/
+
+
+networks:
+  backend:
+    name: "news-bot-backend"
 
 volumes:
-  db:
+  postgres:
+    name: "news-bot-postgres"

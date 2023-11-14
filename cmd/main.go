@@ -1,10 +1,11 @@
-// Package main - entry point for the application.
 package main
 
 import (
 	"context"
 	"errors"
+	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/to77e/news-bot/internal/bot"
 	"github.com/to77e/news-bot/internal/botkit"
 	"github.com/to77e/news-bot/internal/config"
@@ -13,23 +14,42 @@ import (
 	"github.com/to77e/news-bot/internal/notifier"
 	"github.com/to77e/news-bot/internal/repository"
 	"github.com/to77e/news-bot/internal/summary"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
 func main() {
+	const logLevel = slog.LevelInfo
+
 	ctx := context.Background()
-	botAPI, err := tgbotapi.NewBotAPI(config.Get().TelegramBotToken)
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel})))
+
+	if err := config.Read(".config.yaml"); err != nil {
+		slog.With("error", err.Error()).ErrorContext(ctx, "read config")
+		return
+	}
+	cfg := config.Get()
+
+	botAPI, err := tgbotapi.NewBotAPI(cfg.Telegram.BotToken)
 	if err != nil {
-		log.Printf("create bot: %v", err)
+		slog.With("error", err.Error()).ErrorContext(ctx, "create bot")
 		return
 	}
 
-	conn, err := database.NewPostgres(ctx, config.Get().DatabaseDSN)
+	dsn := fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v sslmode=%v",
+		cfg.Database.Host,
+		cfg.Database.Port,
+		cfg.Database.User,
+		cfg.Database.Password,
+		cfg.Database.Name,
+		cfg.Database.SslMode,
+	)
+	var conn *pgxpool.Pool
+	conn, err = database.NewPostgres(ctx, dsn)
 	if err != nil {
-		log.Printf("create connection: %v", err)
+		slog.With("error", err.Error()).ErrorContext(ctx, "new postgresql connection")
 		return
 	}
 	defer conn.Close()
@@ -39,16 +59,16 @@ func main() {
 	fetch := fetcher.New(
 		articleRepository,
 		sourceRepository,
-		config.Get().FetchInterval,
-		config.Get().FilterKeyword,
+		cfg.Settings.FetchInterval,
+		cfg.Settings.FilterKeyword,
 	)
 	notify := notifier.New(
 		articleRepository,
-		summary.NewOpenAISummarizer(config.Get().OpenAIKey, config.Get().OpenAIPrompt),
+		summary.NewOpenAISummarizer(cfg.OpenAI.Key, cfg.OpenAI.Prompt),
 		botAPI,
-		config.Get().NotificationInterval,
-		2*config.Get().FetchInterval,
-		config.Get().TelegramChannelID,
+		cfg.Settings.NotificationInterval,
+		2*cfg.Settings.FetchInterval,
+		cfg.Telegram.ChannelID,
 	)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -62,28 +82,28 @@ func main() {
 	go func(ctx context.Context) {
 		if err := fetch.Start(ctx); err != nil {
 			if errors.Is(err, context.Canceled) {
-				log.Printf("[ERROR] fetcher start: %v", err)
+				slog.With("error", err.Error()).Error("fetcher start")
 				return
 			}
-			log.Printf("fetcher stop: %v", err)
+			slog.With("error", err.Error()).Error("fetcher stop")
 		}
 	}(ctx)
 
 	go func(ctx context.Context) {
 		if err := notify.Start(ctx); err != nil {
 			if errors.Is(err, context.Canceled) {
-				log.Printf("[ERROR] notifier start: %v", err)
+				slog.With("error", err.Error()).Error("notifier start")
 				return
 			}
-			log.Printf("notifier stop: %v", err)
+			slog.With("error", err.Error()).Error("notifier stop")
 		}
 	}(ctx)
 
 	if err := newsBot.Run(ctx); err != nil {
 		if errors.Is(err, context.Canceled) {
-			log.Printf("[ERROR] bot start: %v", err)
+			slog.With("error", err.Error()).Error("bot start")
 			return
 		}
-		log.Printf("bot stop: %v", err)
+		slog.With("error", err.Error()).Error("bot stop")
 	}
 }

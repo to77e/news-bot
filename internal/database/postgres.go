@@ -1,4 +1,3 @@
-// Package database - provides database connection and database operations.
 package database
 
 import (
@@ -7,7 +6,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// NewPostgres - creates new connection to postgres database.
 func NewPostgres(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
 	pool, err := pgxpool.New(ctx, dsn)
 	if err != nil {

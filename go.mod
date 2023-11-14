@@ -1,15 +1,14 @@
 module github.com/to77e/news-bot
 
-go 1.20
+go 1.21
 
 require (
 	github.com/SlyMarbo/rss v1.0.5
-	github.com/cristalhq/aconfig v0.18.4
-	github.com/cristalhq/aconfig/aconfigyaml v0.17.1
 	github.com/go-shiori/go-readability v0.0.0-20230421032831-c66949dfc0ad
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/jackc/pgx/v5 v5.4.2
 	github.com/sashabaranov/go-openai v1.14.1
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -26,5 +25,4 @@ require (
 	golang.org/x/net v0.12.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/text v0.11.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
