@@ -4,33 +4,33 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/to77e/news-bot/internal/bot"
-	"github.com/to77e/news-bot/internal/botkit"
-	"github.com/to77e/news-bot/internal/config"
-	"github.com/to77e/news-bot/internal/database"
-	"github.com/to77e/news-bot/internal/fetcher"
-	"github.com/to77e/news-bot/internal/notifier"
-	"github.com/to77e/news-bot/internal/repository"
-	"github.com/to77e/news-bot/internal/summary"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/to77e/news-fetching-bot/internal/bot"
+	"github.com/to77e/news-fetching-bot/internal/botkit"
+	"github.com/to77e/news-fetching-bot/internal/config"
+	"github.com/to77e/news-fetching-bot/internal/database"
+	"github.com/to77e/news-fetching-bot/internal/fetcher"
+	"github.com/to77e/news-fetching-bot/internal/notifier"
+	"github.com/to77e/news-fetching-bot/internal/repository"
+	"github.com/to77e/news-fetching-bot/internal/summary"
 )
 
 func main() {
-	const logLevel = slog.LevelInfo
-
 	ctx := context.Background()
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel})))
 
-	if err := config.Read(".config.yaml"); err != nil {
+	if err := config.Read(); err != nil {
 		slog.With("error", err.Error()).ErrorContext(ctx, "read config")
 		return
 	}
 	cfg := config.Get()
+
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.Level(cfg.Project.LogLevel)})))
 
 	botAPI, err := tgbotapi.NewBotAPI(cfg.Telegram.BotToken)
 	if err != nil {
@@ -38,16 +38,18 @@ func main() {
 		return
 	}
 
-	dsn := fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v sslmode=%v",
-		cfg.Database.Host,
-		cfg.Database.Port,
-		cfg.Database.User,
-		cfg.Database.Password,
-		cfg.Database.Name,
-		cfg.Database.SslMode,
-	)
 	var conn *pgxpool.Pool
-	conn, err = database.NewPostgres(ctx, dsn)
+	conn, err = database.NewPostgres(
+		ctx,
+		fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v sslmode=%v",
+			cfg.Database.Host,
+			cfg.Database.Port,
+			cfg.Database.User,
+			cfg.Database.Password,
+			cfg.Database.Name,
+			cfg.Database.SSLMode,
+		),
+	)
 	if err != nil {
 		slog.With("error", err.Error()).ErrorContext(ctx, "new postgresql connection")
 		return
@@ -78,6 +80,8 @@ func main() {
 	newsBot.RegisterCmdView("start", bot.ViewCmdStart())
 	newsBot.RegisterCmdView("add_source", bot.ViewCmdAddSource(sourceRepository))
 	newsBot.RegisterCmdView("list_sources", bot.ViewCmdListSources(sourceRepository))
+	newsBot.RegisterCmdView("help", bot.ViewCmdHelp(newsBot.GetCommandNames()))
+	newsBot.RegisterCmdView("version", bot.ViewCmdVersion(cfg.Project.Version))
 
 	go func(ctx context.Context) {
 		if err := fetch.Start(ctx); err != nil {

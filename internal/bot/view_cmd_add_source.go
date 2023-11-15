@@ -3,10 +3,10 @@ package bot
 import (
 	"context"
 	"fmt"
-	"github.com/to77e/news-bot/internal/models"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/to77e/news-bot/internal/botkit"
+	"github.com/to77e/news-fetching-bot/internal/botkit"
+	"github.com/to77e/news-fetching-bot/internal/models"
 )
 
 const parseModeMarkdownV2 = "MarkdownV2"

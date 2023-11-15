@@ -3,33 +3,51 @@ version: '3.9'
 services:
   postgres:
     image: postgres:latest
-    healthcheck:
-      test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres"]
-      timeout: 45s
-      interval: 10s
-      retries: 10
-    restart: always
-    logging:
-      driver: "gelf"
-      options:
-        gelf-address: "udp://localhost:12201"
-        tag: "postgres"
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=$DATABASE_USER
+      - POSTGRES_PASSWORD=$DATABASE_PASSWORD
+      - POSTGRES_DB=$DATABASE_NAME
     ports:
       - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: news-bot-db
+    healthcheck:
+      test: pg_isready -U $DATABASE_USER -d $DATABASE_NAME
+      interval: 10s
+      timeout: 45s
+      retries: 10
+    restart: always
     networks:
       - backend
-    volumes:
-      - postgres:/var/lib/postgresql/data/
 
+  migrations:
+    build:
+      context: .
+      dockerfile: ./build/migrations/Dockerfile
+    image: news-fetching-bot-migrations
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - backend
+
+  news-fetching-bot:
+    build:
+      context: .
+      dockerfile: build/news-fetching-bot/Dockerfile
+    image: news-fetching-bot
+    env_file:
+      - .env
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+    restart: on-failure
+    networks:
+      - backend
 
 networks:
   backend:
-    name: "news-bot-backend"
-
-volumes:
-  postgres:
-    name: "news-bot-postgres"
+    name: "news-fetching-bot-backend"

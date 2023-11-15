@@ -3,16 +3,16 @@ package notifier
 import (
 	"context"
 	"fmt"
-	"github.com/go-shiori/go-readability"
-	"github.com/to77e/news-bot/internal/botkit/markup"
 	"io"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
 
+	"github.com/go-shiori/go-readability"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/to77e/news-bot/internal/models"
+	"github.com/to77e/news-fetching-bot/internal/botkit/markup"
+	"github.com/to77e/news-fetching-bot/internal/models"
 )
 
 type ArticleProvider interface {

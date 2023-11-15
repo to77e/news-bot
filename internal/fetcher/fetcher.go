@@ -1,36 +1,31 @@
-// Package fetcher provides work with fetcher.
 package fetcher
 
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/to77e/news-bot/internal/models"
-	"github.com/to77e/news-bot/internal/source"
+	"github.com/to77e/news-fetching-bot/internal/models"
+	"github.com/to77e/news-fetching-bot/internal/source"
 )
 
-// ArticleRepository - article repository.
 type ArticleRepository interface {
 	Store(ctx context.Context, article models.Article) error
 }
 
-// SourceRepository - source repository.
 type SourceRepository interface {
 	Sources(ctx context.Context) ([]*models.Source, error)
 }
 
-// Source - source.
 type Source interface {
 	ID() int64
 	Name() string
 	Fetch(ctx context.Context) ([]models.Item, error)
 }
 
-// Fetcher - fetcher.
 type Fetcher struct {
 	articles ArticleRepository
 	sources  SourceRepository
@@ -39,7 +34,6 @@ type Fetcher struct {
 	filterKeyword []string
 }
 
-// New - creates new fetcher.
 func New(
 	articles ArticleRepository,
 	sources SourceRepository,
@@ -54,7 +48,6 @@ func New(
 	}
 }
 
-// Start - starts fetching articles from sources.
 func (f *Fetcher) Start(ctx context.Context) error {
 	ticker := time.NewTicker(f.fetchInterval)
 	defer ticker.Stop()
@@ -75,7 +68,6 @@ func (f *Fetcher) Start(ctx context.Context) error {
 	}
 }
 
-// Fetch - fetches articles from sources.
 func (f *Fetcher) Fetch(ctx context.Context) error {
 	sources, err := f.sources.Sources(ctx)
 	if err != nil {
@@ -91,12 +83,12 @@ func (f *Fetcher) Fetch(ctx context.Context) error {
 			defer wg.Done()
 			items, err := source.Fetch(ctx)
 			if err != nil {
-				log.Printf("[ERROR] fetch source %s: %v", source.Name(), err)
+				slog.With("error", err.Error()).ErrorContext(ctx, "fetch source", "name", source.Name())
 				return
 			}
 
 			if err := f.processItems(ctx, source, items); err != nil {
-				log.Printf("[ERROR] process items: %v", err)
+				slog.With("error", err.Error()).ErrorContext(ctx, "process items", "name", source.Name())
 				return
 			}
 

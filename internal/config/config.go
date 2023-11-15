@@ -2,9 +2,7 @@ package config
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v3"
-	"os"
-	"path/filepath"
+	"github.com/caarlos0/env/v10"
 	"time"
 )
 
@@ -16,46 +14,44 @@ const (
 var cfg *Config
 
 type Config struct {
-	Project  Project  `yaml:"project"`
-	Settings Settings `yaml:"settings"`
-	Telegram Telegram `yaml:"telegram"`
-	Database Database `yaml:"database"`
-	OpenAI   OpenAI   `yaml:"openai"`
+	Project  Project
+	Settings Settings
+	Telegram Telegram
+	Database Database
+	OpenAI   OpenAI
 }
 
 type Project struct {
-	Debug       bool   `yaml:"debug"`
-	Name        string `yaml:"name"`
-	Environment string `yaml:"environment"`
+	Name        string `env:"PROJECT_NAME"`
+	Environment string `env:"PROJECT_ENVIRONMENT" envDefault:"development"`
+	LogLevel    int    `env:"PROJECT_LOG_LEVEL" envDefault:"0"`
 	Version     string
 	CommitHash  string
 }
 
 type Settings struct {
-	FetchInterval        time.Duration `yaml:"fetch_interval"`
-	NotificationInterval time.Duration `yaml:"notification_interval"`
-	FilterKeyword        []string      `yaml:"filter_keyword"`
+	FetchInterval        time.Duration `env:"FETCH_INTERVAL"`
+	NotificationInterval time.Duration `env:"NOTIFICATION_INTERVAL"`
+	FilterKeyword        []string
 }
 
 type Telegram struct {
-	BotToken  string `yaml:"bot_token"`
-	ChannelID int64  `yaml:"channel_id"`
+	BotToken  string `env:"TELEGRAM_BOT_TOKEN"`
+	ChannelID int64  `env:"TELEGRAM_CHANNEL_ID"`
 }
 
 type Database struct {
-	Host       string `yaml:"host"`
-	Port       string `yaml:"port"`
-	User       string `yaml:"user"`
-	Password   string `yaml:"password"`
-	Migrations string `yaml:"migrations"`
-	Name       string `yaml:"name"`
-	SslMode    string `yaml:"sslmode"`
-	Driver     string `yaml:"driver"`
+	Host     string `env:"DATABASE_HOST"`
+	Port     string `env:"DATABASE_PORT"`
+	User     string `env:"DATABASE_USER"`
+	Password string `env:"DATABASE_PASSWORD"`
+	Name     string `env:"DATABASE_NAME"`
+	SSLMode  string `env:"DATABASE_SSL_MODE" envDefault:"disable"`
 }
 
 type OpenAI struct {
-	Key    string `yaml:"key"`
-	Prompt string `yaml:"prompt"`
+	Key    string
+	Prompt string
 }
 
 func Get() Config {
@@ -65,20 +61,14 @@ func Get() Config {
 	return Config{}
 }
 
-func Read(filePath string) error {
+func Read() error {
 	if cfg != nil {
 		return nil
 	}
 
-	file, err := os.Open(filepath.Clean(filePath))
-	if err != nil {
-		return fmt.Errorf("open config file: %w", err)
-	}
-	defer file.Close() //nolint: errcheck
-
-	decoder := yaml.NewDecoder(file)
-	if err = decoder.Decode(&cfg); err != nil {
-		return err
+	cfg = &Config{}
+	if err := env.Parse(cfg); err != nil {
+		return fmt.Errorf("parse env: %w", err)
 	}
 
 	cfg.Project.Version = version

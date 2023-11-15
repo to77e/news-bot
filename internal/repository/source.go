@@ -1,17 +1,16 @@
-// Package repository provides work with database.
 package repository
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/to77e/news-bot/internal/models"
-	"time"
+	"github.com/to77e/news-fetching-bot/internal/models"
 )
 
-// ErrorSourceNotFound - source not found error.
 var (
 	ErrorSourceNotFound = errors.New("source not found")
 )
@@ -23,17 +22,14 @@ type dbSource struct {
 	CreatedDate time.Time `db:"created_at"`
 }
 
-// SourceRepository - source repository.
 type SourceRepository struct {
 	db *pgxpool.Pool
 }
 
-// NewSourceRepository - creates new source repository.
 func NewSourceRepository(db *pgxpool.Pool) *SourceRepository {
 	return &SourceRepository{db: db}
 }
 
-// Sources - returns all sources.
 func (s *SourceRepository) Sources(ctx context.Context) ([]*models.Source, error) {
 	const (
 		query = `SELECT id, name, feed_url, created_at FROM sources;`
@@ -63,7 +59,6 @@ func (s *SourceRepository) Sources(ctx context.Context) ([]*models.Source, error
 	return sources, nil
 }
 
-// SourceByID - returns source by id.
 func (s *SourceRepository) SourceByID(ctx context.Context, id int64) (*models.Source, error) {
 	const (
 		query = `SELECT id, name, feed_url, created_at FROM sources WHERE id = $1;`
@@ -81,7 +76,6 @@ func (s *SourceRepository) SourceByID(ctx context.Context, id int64) (*models.So
 	return (*models.Source)(&source), nil
 }
 
-// Add - adds new source.
 func (s *SourceRepository) Add(ctx context.Context, source models.Source) (int64, error) {
 	const (
 		query = `INSERT INTO sources (name, feed_url) VALUES ($1, $2) RETURNING id;`
@@ -96,7 +90,6 @@ func (s *SourceRepository) Add(ctx context.Context, source models.Source) (int64
 	return id, nil
 }
 
-// Delete - deletes source by id.
 func (s *SourceRepository) Delete(ctx context.Context, id int64) error {
 	const (
 		query = `DELETE FROM sources WHERE id = $1;`

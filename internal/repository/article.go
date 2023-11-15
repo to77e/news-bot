@@ -1,13 +1,13 @@
-// Package repository provides work with database.
 package repository
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/to77e/news-bot/internal/models"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/to77e/news-fetching-bot/internal/models"
 )
 
 type dbArticle struct {
@@ -21,17 +21,14 @@ type dbArticle struct {
 	CreatedDate   time.Time    `db:"created_at"`
 }
 
-// ArticleRepository - article repository.
 type ArticleRepository struct {
 	db *pgxpool.Pool
 }
 
-// NewArticleRepository - creates new article repository.
 func NewArticleRepository(db *pgxpool.Pool) *ArticleRepository {
 	return &ArticleRepository{db: db}
 }
 
-// Store - stores article.
 func (a *ArticleRepository) Store(ctx context.Context, article models.Article) error {
 	const (
 		query = `
@@ -48,13 +45,12 @@ func (a *ArticleRepository) Store(ctx context.Context, article models.Article) e
 	return nil
 }
 
-// AllNotPosted - returns all not posted articles.
 func (a *ArticleRepository) AllNotPosted(ctx context.Context, since time.Time, limit uint64) ([]*models.Article, error) {
 	const (
 		query = `
 			SELECT id, source_id, title, link, summary, published_at, created_at, posted_at
 			FROM articles 
-			WHERE posted_at IS NULL AND published_at >= $1::timestamp
+			WHERE posted_at IS NULL AND published_at >= $1::TIMESTAMP
 			ORDER BY published_at DESC
 			LIMIT $2;`
 	)
@@ -95,7 +91,6 @@ func (a *ArticleRepository) AllNotPosted(ctx context.Context, since time.Time, l
 	return articles, nil
 }
 
-// MarkPosted - marks source as posted.
 func (a *ArticleRepository) MarkPosted(ctx context.Context, id int64) error {
 	const (
 		query = `UPDATE articles SET posted_at = NOW() WHERE id = $1;`

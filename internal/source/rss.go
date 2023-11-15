@@ -1,4 +1,3 @@
-// Package source provides work with sources.
 package source
 
 import (
@@ -6,17 +5,15 @@ import (
 	"fmt"
 
 	"github.com/SlyMarbo/rss"
-	"github.com/to77e/news-bot/internal/models"
+	"github.com/to77e/news-fetching-bot/internal/models"
 )
 
-// RSSSource - RSS source.
 type RSSSource struct {
 	URL        string
 	SourceID   int64
 	SourceName string
 }
 
-// NewRSSSourceForModel - creates new RSSSource for model.
 func NewRSSSourceForModel(m *models.Source) RSSSource {
 	return RSSSource{
 		URL:        m.FeedURL,
@@ -25,7 +22,6 @@ func NewRSSSourceForModel(m *models.Source) RSSSource {
 	}
 }
 
-// Fetch - fetches items from source.
 func (r RSSSource) Fetch(ctx context.Context) ([]models.Item, error) {
 	feed, err := r.loadFeed(ctx, r.URL)
 	if err != nil {
@@ -60,7 +56,6 @@ func (r RSSSource) loadFeed(ctx context.Context, url string) (*rss.Feed, error) 
 		}
 
 		feedCh <- feed
-		return
 	}()
 
 	select {
@@ -73,12 +68,10 @@ func (r RSSSource) loadFeed(ctx context.Context, url string) (*rss.Feed, error) 
 	}
 }
 
-// ID - returns source id.
 func (r RSSSource) ID() int64 {
 	return r.SourceID
 }
 
-// Name - returns source name.
 func (r RSSSource) Name() string {
 	return r.SourceName
 }

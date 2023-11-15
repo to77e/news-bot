@@ -3,10 +3,12 @@ package bot
 import (
 	"context"
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/to77e/news-bot/internal/botkit"
-	"github.com/to77e/news-bot/internal/models"
+	"github.com/to77e/news-fetching-bot/internal/botkit/markup"
 	"strings"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/to77e/news-fetching-bot/internal/botkit"
+	"github.com/to77e/news-fetching-bot/internal/models"
 )
 
 type SourceLister interface {
@@ -40,4 +42,13 @@ func ViewCmdListSources(lister SourceLister) botkit.ViewFunc {
 
 		return nil
 	}
+}
+
+func formatSource(source *models.Source) string {
+	return fmt.Sprintf(
+		"*%s*\nID: `%d`\nfeed URL: %s",
+		markup.EscapeForMarkdown(source.Name),
+		source.ID,
+		markup.EscapeForMarkdown(source.FeedURL),
+	)
 }

@@ -1,16 +1,15 @@
-// Package summary provides work with OpenAI summarizer.
 package summary
 
 import (
 	"context"
 	"fmt"
-	"github.com/sashabaranov/go-openai"
-	"log"
+	"log/slog"
 	"strings"
 	"sync"
+
+	"github.com/sashabaranov/go-openai"
 )
 
-// OpenAISummarizer - OpenAI summarizer.
 type OpenAISummarizer struct {
 	client  *openai.Client
 	prompt  string
@@ -18,14 +17,13 @@ type OpenAISummarizer struct {
 	mu      sync.Mutex
 }
 
-// NewOpenAISummarizer - creates new OpenAI summarizer.
 func NewOpenAISummarizer(apiKey string, prompt string) *OpenAISummarizer {
 	s := &OpenAISummarizer{
 		client: openai.NewClient(apiKey),
 		prompt: prompt,
 	}
 
-	log.Printf("openai summarizer enabled: %v", apiKey != "")
+	slog.Info("openai summarizer", "is enabled", apiKey != "")
 
 	if apiKey != "" {
 		s.enabled = true
@@ -34,7 +32,6 @@ func NewOpenAISummarizer(apiKey string, prompt string) *OpenAISummarizer {
 	return s
 }
 
-// Summarize - summarizes text.
 func (s *OpenAISummarizer) Summarize(ctx context.Context, text string) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

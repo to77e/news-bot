@@ -1,4 +1,3 @@
-// Package markup provides work with markup.
 package markup
 
 import "strings"
@@ -44,7 +43,6 @@ var (
 	)
 )
 
-// EscapeForMarkdown - escapes markdown.
 func EscapeForMarkdown(text string) string {
 	return replacer.Replace(text)
 }
