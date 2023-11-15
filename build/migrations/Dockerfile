@@ -1,4 +1,4 @@
-FROM golang:1.21-alpine3.18 as builder
+FROM golang:1.21-alpine3.18
 
 RUN apk add git
 
@@ -7,11 +7,6 @@ RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 WORKDIR /migrations
 
 COPY migrations/ /migrations/
-
-FROM alpine:3.18
-
-COPY --from=builder /go/bin/goose /go/bin/goose
-COPY --from=builder /migrations/ /migrations/
 
 ENV DATABASE_HOST=""
 ENV DATABASE_PORT=""

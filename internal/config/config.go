@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const (
+var (
 	version    = "dev"
 	commitHash = "-"
 )

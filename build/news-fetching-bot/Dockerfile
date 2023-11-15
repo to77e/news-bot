@@ -6,9 +6,14 @@ COPY . .
 
 RUN apk add git
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o news-fetching-bot ./cmd/news-fetching-bot/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -ldflags=" \
+      -X 'github.com/to77e/news-fetching-bot/internal/config.version=$(git describe --tags --abbrev=0)' \
+      -X 'github.com/to77e/news-fetching-bot/internal/config.commitHash=$(git rev-parse HEAD)' \
+    " \
+    -o news-fetching-bot ./cmd/news-fetching-bot/main.go
 
-FROM scratch as server
+FROM scratch
 
 WORKDIR /news-fetching-bot
 

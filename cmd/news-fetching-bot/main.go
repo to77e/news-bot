@@ -81,7 +81,7 @@ func main() {
 	newsBot.RegisterCmdView("add_source", bot.ViewCmdAddSource(sourceRepository))
 	newsBot.RegisterCmdView("list_sources", bot.ViewCmdListSources(sourceRepository))
 	newsBot.RegisterCmdView("help", bot.ViewCmdHelp(newsBot.GetCommandNames()))
-	newsBot.RegisterCmdView("version", bot.ViewCmdVersion(cfg.Project.Version))
+	newsBot.RegisterCmdView("info", bot.ViewCmdInfo(cfg.Project.Version, cfg.Project.CommitHash))
 
 	go func(ctx context.Context) {
 		if err := fetch.Start(ctx); err != nil {
