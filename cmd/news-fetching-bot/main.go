@@ -58,19 +58,26 @@ func main() {
 
 	articleRepository := repository.NewArticleRepository(conn)
 	sourceRepository := repository.NewSourceRepository(conn)
-	fetch := fetcher.New(
-		articleRepository,
-		sourceRepository,
-		cfg.Settings.FetchInterval,
-		cfg.Settings.FilterKeyword,
-	)
-	notify := notifier.New(
-		articleRepository,
-		summary.NewOpenAISummarizer(cfg.OpenAI.Key, cfg.OpenAI.Prompt),
-		botAPI,
-		cfg.Settings.NotificationInterval,
-		2*cfg.Settings.FetchInterval,
-		cfg.Telegram.ChannelID,
+	var (
+		fetch = fetcher.New(
+			articleRepository,
+			sourceRepository,
+			cfg.Settings.FetchInterval,
+			cfg.Settings.FilterKeyword,
+		)
+		summarize = summary.NewOpenAISummarizer(
+			cfg.OpenAI.Key,
+			cfg.OpenAI.Prompt,
+			cfg.OpenAI.Model,
+		)
+		notify = notifier.New(
+			articleRepository,
+			summarize,
+			botAPI,
+			cfg.Settings.NotificationInterval,
+			2*cfg.Settings.FetchInterval,
+			cfg.Telegram.ChannelID,
+		)
 	)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -80,7 +87,9 @@ func main() {
 	newsBot.RegisterCmdView("start", bot.ViewCmdStart())
 	newsBot.RegisterCmdView("add_source", bot.ViewCmdAddSource(sourceRepository))
 	newsBot.RegisterCmdView("list_sources", bot.ViewCmdListSources(sourceRepository))
+	// command help should be registered last
 	newsBot.RegisterCmdView("help", bot.ViewCmdHelp(newsBot.GetCommandNames()))
+	// hidden commands
 	newsBot.RegisterCmdView("info", bot.ViewCmdInfo(cfg.Project.Version, cfg.Project.CommitHash))
 
 	go func(ctx context.Context) {

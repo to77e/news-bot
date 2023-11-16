@@ -16,7 +16,7 @@ type RSSSource struct {
 
 func NewRSSSourceForModel(m *models.Source) RSSSource {
 	return RSSSource{
-		URL:        m.FeedURL,
+		URL:        m.URL,
 		SourceID:   m.ID,
 		SourceName: m.Name,
 	}

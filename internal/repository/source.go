@@ -18,7 +18,7 @@ var (
 type dbSource struct {
 	ID          int64     `db:"id"`
 	Name        string    `db:"name"`
-	FeedURL     string    `db:"feed_url"`
+	URL         string    `db:"url"`
 	CreatedDate time.Time `db:"created_at"`
 }
 
@@ -32,7 +32,7 @@ func NewSourceRepository(db *pgxpool.Pool) *SourceRepository {
 
 func (s *SourceRepository) Sources(ctx context.Context) ([]*models.Source, error) {
 	const (
-		query = `SELECT id, name, feed_url, created_at FROM sources;`
+		query = `SELECT id, name, url, created_at FROM sources;`
 	)
 
 	rows, err := s.db.Query(ctx, query)
@@ -44,14 +44,14 @@ func (s *SourceRepository) Sources(ctx context.Context) ([]*models.Source, error
 	var sources []*models.Source
 	for rows.Next() {
 		var source dbSource
-		if err := rows.Scan(&source.ID, &source.Name, &source.FeedURL, &source.CreatedDate); err != nil {
+		if err := rows.Scan(&source.ID, &source.Name, &source.URL, &source.CreatedDate); err != nil {
 			return nil, err
 		}
 
 		sources = append(sources, &models.Source{
 			ID:          source.ID,
 			Name:        source.Name,
-			FeedURL:     source.FeedURL,
+			URL:         source.URL,
 			CreatedDate: source.CreatedDate,
 		})
 	}
@@ -61,11 +61,11 @@ func (s *SourceRepository) Sources(ctx context.Context) ([]*models.Source, error
 
 func (s *SourceRepository) SourceByID(ctx context.Context, id int64) (*models.Source, error) {
 	const (
-		query = `SELECT id, name, feed_url, created_at FROM sources WHERE id = $1;`
+		query = `SELECT id, name, url, created_at FROM sources WHERE id = $1;`
 	)
 
 	var source dbSource
-	err := s.db.QueryRow(ctx, query, id).Scan(&source.ID, &source.Name, &source.FeedURL, &source.CreatedDate)
+	err := s.db.QueryRow(ctx, query, id).Scan(&source.ID, &source.Name, &source.URL, &source.CreatedDate)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, ErrorSourceNotFound
@@ -78,11 +78,11 @@ func (s *SourceRepository) SourceByID(ctx context.Context, id int64) (*models.So
 
 func (s *SourceRepository) Add(ctx context.Context, source models.Source) (int64, error) {
 	const (
-		query = `INSERT INTO sources (name, feed_url) VALUES ($1, $2) RETURNING id;`
+		query = `INSERT INTO sources (name, url) VALUES ($1, $2) RETURNING id;`
 	)
 
 	var id int64
-	err := s.db.QueryRow(ctx, query, source.Name, source.FeedURL).Scan(&id)
+	err := s.db.QueryRow(ctx, query, source.Name, source.URL).Scan(&id)
 	if err != nil {
 		return 0, fmt.Errorf("insert source: %w", err)
 	}

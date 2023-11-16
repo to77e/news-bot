@@ -14,7 +14,7 @@ type Item struct {
 type Source struct {
 	ID          int64
 	Name        string
-	FeedURL     string
+	URL         string
 	CreatedDate time.Time
 }
 

@@ -29,8 +29,8 @@ func ViewCmdAddSource(storage SourceRepository) botkit.ViewFunc {
 		}
 
 		source := models.Source{
-			Name:    args.Name,
-			FeedURL: args.URL,
+			Name: args.Name,
+			URL:  args.URL,
 		}
 
 		sourceID, err := storage.Add(ctx, source)

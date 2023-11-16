@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/sashabaranov/go-openai"
 )
@@ -13,14 +14,16 @@ import (
 type OpenAISummarizer struct {
 	client  *openai.Client
 	prompt  string
+	model   string
 	enabled bool
 	mu      sync.Mutex
 }
 
-func NewOpenAISummarizer(apiKey string, prompt string) *OpenAISummarizer {
+func NewOpenAISummarizer(apiKey, prompt, model string) *OpenAISummarizer {
 	s := &OpenAISummarizer{
 		client: openai.NewClient(apiKey),
 		prompt: prompt,
+		model:  model,
 	}
 
 	slog.Info("openai summarizer", "is enabled", apiKey != "")
@@ -41,11 +44,15 @@ func (s *OpenAISummarizer) Summarize(ctx context.Context, text string) (string, 
 	}
 
 	request := openai.ChatCompletionRequest{
-		Model: openai.GPT3Ada,
+		Model: s.model,
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role:    openai.ChatMessageRoleSystem,
-				Content: fmt.Sprintf("%s%s", text, s.prompt),
+				Content: s.prompt,
+			},
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: text,
 			},
 		},
 		MaxTokens:   256,
@@ -53,13 +60,23 @@ func (s *OpenAISummarizer) Summarize(ctx context.Context, text string) (string, 
 		TopP:        1,
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+	defer cancel()
+
 	resp, err := s.client.CreateChatCompletion(ctx, request)
 	if err != nil {
+		if strings.Contains(err.Error(), "status code: 429") {
+			slog.Warn("openai summarizer", "rate limit exceeded", err)
+			return "", nil
+		}
 		return "", fmt.Errorf("failed to create chat completion: %w", err)
 	}
 
-	raw := strings.TrimSpace(resp.Choices[0].Message.Content)
+	if len(resp.Choices) == 0 {
+		return "", fmt.Errorf("no choices in openai response")
+	}
 
+	raw := strings.TrimSpace(resp.Choices[0].Message.Content)
 	if strings.HasSuffix(raw, ".") {
 		return raw, nil
 	}

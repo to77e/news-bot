@@ -1,3 +1,6 @@
+include .env
+export
+
 SERVICE_NAME=news-fetching-bot
 SERVICE_PATH=to77e/news-fetching-bot
 
@@ -9,7 +12,7 @@ GOOSE_BIN:=$(LOCAL_BIN)/goose
 
 .PHONY: run
 run:
-	go run cmd/main.go
+	go run cmd/news-fetching-bot/main.go
 
 .PHONY: build
 build:
@@ -17,7 +20,7 @@ build:
 	-ldflags=" \
 		-X 'github.com/$(SERVICE_PATH)/internal/config.version=`git tag --sort=-version:refname | head -n 1`\
 	" \
-	-o bin/news-fetching-bot cmd/app/main.go
+	-o bin/news-fetching-bot cmd/news-fetching-bot/main.go
 
 .PHONY: test
 test:

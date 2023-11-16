@@ -50,8 +50,9 @@ type Database struct {
 }
 
 type OpenAI struct {
-	Key    string
-	Prompt string
+	Key    string `env:"OPENAI_API_KEY"`
+	Prompt string `env:"OPENAI_API_PROMPT"`
+	Model  string `env:"OPENAI_API_MODEL" envDefault:"gpt-3.5-turbo"`
 }
 
 func Get() Config {

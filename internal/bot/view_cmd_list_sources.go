@@ -49,6 +49,6 @@ func formatSource(source *models.Source) string {
 		"*%s*\nID: `%d`\nfeed URL: %s",
 		markup.EscapeForMarkdown(source.Name),
 		source.ID,
-		markup.EscapeForMarkdown(source.FeedURL),
+		markup.EscapeForMarkdown(source.URL),
 	)
 }
