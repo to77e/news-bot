@@ -55,8 +55,8 @@ func (s *OpenAISummarizer) Summarize(ctx context.Context, text string) (string, 
 				Content: text,
 			},
 		},
-		MaxTokens:   256,
-		Temperature: 0.7,
+		MaxTokens:   1024,
+		Temperature: 1,
 		TopP:        1,
 	}
 
