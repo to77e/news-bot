@@ -93,4 +93,4 @@ dev-up:
 
 .PHONY: dev-down
 dev-down:
-	DOCKER_HOST=$(NEWS_FETCHING_BOT_REMOTE_HOST) docker-compose -f docker-compose.yaml down -v -rmi $(SERVICE_NAME)
+	DOCKER_HOST=$(NEWS_FETCHING_BOT_REMOTE_HOST) docker-compose -f docker-compose.yaml down -v
