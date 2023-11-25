@@ -67,7 +67,7 @@ func (s *SourceRepository) SourceByID(ctx context.Context, id int64) (*models.So
 	var source dbSource
 	err := s.db.QueryRow(ctx, query, id).Scan(&source.ID, &source.Name, &source.URL, &source.CreatedDate)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrorSourceNotFound
 		}
 		return nil, fmt.Errorf("select source by id %d: %w", id, err)

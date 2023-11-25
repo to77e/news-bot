@@ -53,16 +53,16 @@ func (f *Fetcher) Start(ctx context.Context) error {
 	defer ticker.Stop()
 
 	if err := f.Fetch(ctx); err != nil {
-		return fmt.Errorf("fetch: %w", err)
+		slog.With("error", err.Error()).ErrorContext(ctx, "fetch")
 	}
 
 	for {
 		select {
 		case <-ctx.Done():
-			return nil
+			return ctx.Err()
 		case <-ticker.C:
 			if err := f.Fetch(ctx); err != nil {
-				return fmt.Errorf("fetch: %w", err)
+				slog.With("error", err.Error()).ErrorContext(ctx, "fetch")
 			}
 		}
 	}
